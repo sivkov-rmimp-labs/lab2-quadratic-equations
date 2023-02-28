@@ -39,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double c = 0;
   String solution = '';
   String answer = '';
-  bool isSolutionValid = false;
+  bool isSolved = false;
 
   /// Разрешает вводить отрицательные и положительные вещественные числа. Запрещает вводить невалидные символы.
   /// К примеру, ввести "-5.123.456" не удастся из-за второй точки.
@@ -76,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: const InputDecoration(labelText: 'Коэффициент a'),
                   onChanged: (value) {
                     setState(() {
+                      isSolved = false;
                       if (value.isEmpty) {
                         a = 0;
                       } else {
@@ -89,6 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: const InputDecoration(labelText: 'Коэффициент b'),
                   onChanged: (value) {
                     setState(() {
+                      isSolved = false;
                       if (value.isEmpty) {
                         b = 0;
                       } else {
@@ -102,6 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: const InputDecoration(labelText: 'Коэффициент c'),
                   onChanged: (value) {
                     setState(() {
+                      isSolved = false;
                       if (value.isEmpty) {
                         c = 0;
                       } else {
@@ -122,37 +125,41 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
                     setState(() {
+                      isSolved = true;
+
                       if (a == 0 && b == 0) {
-                        isSolutionValid = false;
                         if (c == 0) {
-                          solution = 'Введенные коэффициенты не позволяют решить данное квадратное уравнение.'
-                              '\nПри данных коэффициентах подходят любые иксы (так как 0 = 0 -- верное равенство).';
+                          solution =
+                              'При данных коэффициентах подходят любые иксы (так как 0 = 0 -- верное равенство).';
+                          answer = 'Ответ: x ∈ ℝ';
                         } else {
-                          solution = 'Введенные коэффициенты не позволяют решить данное квадратное уравнение.'
-                              '\nПри данных коэффициентах не подходит ни один икс (так как ${c.toShortestString()} = 0 -- всегда неверное равенство).';
+                          solution =
+                              'При данных коэффициентах не подходит ни один икс (так как ${c.toShortestString()} = 0 -- всегда неверное равенство).';
+                          answer = 'Ответ: x ∈ ∅';
                         }
                         return;
                       }
 
                       if (a == 0) {
-                        isSolutionValid = false;
-                        solution = 'Введенные коэффициенты не позволяют решить данное квадратное уравнение.'
-                            '\nПри a = 0 получается деление на ноль!';
+                        final x = -c / b;
+                        solution = 'Данное уравнение является линейным.'
+                            '\n\nx = -c / b = ${c.toShortestStringWithFlippedSign()} / ${b.toShortestString()} = ${x.toShortestString()}';
+                        answer = 'Ответ: x = ${x.toShortestString()}';
                         return;
                       }
 
                       final d2 = b * b - 4 * a * c;
 
                       if (d2 < 0) {
-                        isSolutionValid = false;
-                        solution =
-                            'Введенные коэффициенты не позволяют решить данное квадратное уравнение в действительных числах.'
-                            '\nКвадрат дискриминанта равен ${d2.toShortestString()}. '
+                        solution = 'D$sup2 = b^2 - 4ac = '
+                            '${b.toShortestString()} ^ 2 - 4 * ${a.toShortestString()} * ${c.toShortestString()} = '
+                            '${d2.toShortestString()}';
+                        solution += '\nКвадрат дискриминанта равен ${d2.toShortestString()}. '
                             'Корень из отрицательного числа не определен в действительных числах.';
+                        answer = 'Ответ: нет корней';
                         return;
                       }
 
-                      isSolutionValid = true;
                       final d = sqrt(d2);
                       solution = 'D = sqrt(b^2 - 4ac) = '
                           'sqrt(${b.toShortestString()} ^ 2 - 4 * ${a.toShortestString()} * ${c.toShortestString()}) = '
@@ -160,14 +167,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       if (d2 == 0) {
                         final x12 = -b / (2 * a);
-                        solution += '\n\nДискриминант равен нулю, значит корень один:'
-                            '\n\nx$sub1$sub2 = -b / 2a = ${b.toShortestStringWithFlippedSign()} / (2 * ${a.toShortestString()}) = '
+                        solution += '\n\nДискриминант равен нулю:'
+                            '\n\nx$sub1 = x$sub2 = -b / 2a = ${b.toShortestStringWithFlippedSign()} / (2 * ${a.toShortestString()}) = '
                             '${x12.toShortestString()}';
-                        answer = 'Ответ: x$sub1$sub2 = ${x12.toShortestString()}';
+                        answer = 'Ответ: x$sub1 = x$sub2 = ${x12.toShortestString()}';
                       } else {
                         final x1 = (-b - d) / (2 * a);
                         final x2 = (-b + d) / (2 * a);
-                        solution += '\n\nДискриминант не равен нулю, значит корня два:'
+                        solution += '\n\nДискриминант больше нуля:'
                             '\n\nx$sub1 = (-b - sqrt(D)) / 2a = (${b.toShortestStringWithFlippedSign()} - sqrt($d2)) / (2 * ${a.toShortestString()}) = '
                             '${x1.toShortestString()}'
                             '\n\nx$sub2 = (-b + sqrt(D)) / 2a = (${b.toShortestStringWithFlippedSign()} + sqrt($d2)) / (2 * ${a.toShortestString()}) = '
@@ -176,18 +183,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
                     });
                   },
-                  child: const Text('Рассчитать решение'),
+                  child: const Text('Решить уравнение'),
                 ),
-                if (!isSolutionValid)
+                if (isSolved)
                   Text(
-                    solution,
-                    style: isSolutionValid ? null : const TextStyle(color: Colors.red),
+                    answer,
+                    style: const TextStyle(fontSize: 20),
                   ),
-                Text(
-                  isSolutionValid ? answer : '',
-                  style: const TextStyle(fontSize: 20),
-                ),
-                if (isSolutionValid)
+                if (isSolved)
                   MaterialButton(
                     onPressed: () {
                       Navigator.push(
