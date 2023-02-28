@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:lab2_quadratic_equation/advanced_solution.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,7 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double c = 0;
   String solution = '';
   String answer = '';
-  bool isSolutionValid = true;
+  bool isSolutionValid = false;
 
   /// Разрешает вводить отрицательные и положительные вещественные числа. Запрещает вводить невалидные символы.
   /// К примеру, ввести "-5.123.456" не удастся из-за второй точки.
@@ -67,7 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Text(
-                  'Калькулятор квадратных уравнений',
+                  'Решение квадратных уравнений',
                   style: TextStyle(fontSize: Theme.of(context).textTheme.headlineSmall!.fontSize),
                 ),
                 TextField(
@@ -109,11 +110,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   },
                 ),
-                Text('${[
-                  if (a != 0) '${a == 1 ? '' : a.toShortestString()}x$sup2',
-                  if (b != 0) '${b == 1 ? '' : b.toShortestString()}x',
-                  if (c != 0) c.toShortestString(),
-                ].join(' + ').replaceAll("+ -", "- ").ifEmpty('0')} = 0'),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('${[
+                    if (a != 0) '${a == 1 ? '' : a.toShortestString()}x$sup2',
+                    if (b != 0) '${b == 1 ? '' : b.toShortestString()}x',
+                    if (c != 0) c.toShortestString(),
+                  ].join(' + ').replaceAll("+ -", "- ").ifEmpty('0')} = 0'),
+                ),
                 MaterialButton(
                   color: Theme.of(context).colorScheme.primary,
                   onPressed: () {
@@ -130,6 +134,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         return;
                       }
 
+                      if (a == 0) {
+                        isSolutionValid = false;
+                        solution = 'Введенные коэффициенты не позволяют решить данное квадратное уравнение.'
+                            '\nПри a = 0 получается деление на ноль!';
+                        return;
+                      }
+
                       final d2 = b * b - 4 * a * c;
 
                       if (d2 < 0) {
@@ -143,8 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       isSolutionValid = true;
                       final d = sqrt(d2);
-                      solution = 'Решение:';
-                      solution += '\nD = sqrt(b^2 - 4ac) = '
+                      solution = 'D = sqrt(b^2 - 4ac) = '
                           'sqrt(${b.toShortestString()} ^ 2 - 4 * ${a.toShortestString()} * ${c.toShortestString()}) = '
                           'sqrt(${d2.toShortestString()}) = ${d.toShortestString()}';
 
@@ -168,14 +178,32 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                   child: const Text('Рассчитать решение'),
                 ),
-                Text(
-                  solution,
-                  style: isSolutionValid ? null : const TextStyle(color: Colors.red),
-                ),
+                if (!isSolutionValid)
+                  Text(
+                    solution,
+                    style: isSolutionValid ? null : const TextStyle(color: Colors.red),
+                  ),
                 Text(
                   isSolutionValid ? answer : '',
                   style: const TextStyle(fontSize: 20),
                 ),
+                if (isSolutionValid)
+                  MaterialButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return AdvancedSolution(
+                              solution: solution,
+                              answer: answer,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: const Text('Показать детализацию решения'),
+                  ),
               ],
             ),
           ),
